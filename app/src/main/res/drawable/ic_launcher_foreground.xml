@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Red circle background -->
+    <path
+        android:fillColor="#FF3B30"
+        android:pathData="M54,54m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0" />
+    <!-- Subway icon in white -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30C46,30 38,31 38,36v14c0,2.8 2.2,5 5,5l-2,2.5v0.5h3l2,-2h16l2,2h3v-0.5L65,55c2.8,0 5,-2.2 5,-5V36C70,31 62,30 54,30zM43,53c-1.1,0 -2,-0.9 -2,-2s0.9,-2 2,-2 2,0.9 2,2 -0.9,2 -2,2zM51,44h-8v-6h8V44zM65,53c-1.1,0 -2,-0.9 -2,-2s0.9,-2 2,-2 2,0.9 2,2 -0.9,2 -2,2zM67,44h-8v-6h8V44z" />
+</vector>
