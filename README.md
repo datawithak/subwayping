@@ -79,9 +79,7 @@ subway-ping/
 ## Running locally
 
 1. Clone the repo
-2. Get a free MTA API key at [api.mta.info](https://api.mta.info)
-3. Add it to `local.properties`:
-   ```
-   MTA_API_KEY=your_key_here
-   ```
-4. Open in Android Studio and run on a device or emulator (API 26+)
+2. Open in Android Studio
+3. Run on a device or emulator (Android API 26+)
+
+No API key needed. The MTA GTFS-RT feed is publicly accessible.
