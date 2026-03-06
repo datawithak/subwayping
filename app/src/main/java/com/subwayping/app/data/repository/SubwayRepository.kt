@@ -16,8 +16,13 @@ class SubwayRepository(
     /** Fetch live arrivals for a saved route */
     suspend fun getArrivals(route: SavedRoute): Result<List<ArrivalTime>> {
         return try {
-            val feedBytes = mtaFeedService.fetchFeed(route.feedGroup)
-            val stopId = route.stationId + route.direction
+            val feedBytes = if (route.feedGroup == "bus") {
+                mtaFeedService.fetchBusFeed()
+            } else {
+                mtaFeedService.fetchFeed(route.feedGroup)
+            }
+            // Bus stop IDs are numeric and direction-specific — no suffix needed
+            val stopId = if (route.feedGroup == "bus") route.stationId else route.stationId + route.direction
             val arrivals = gtfsParser.parseArrivals(feedBytes, route.lineId, stopId)
             Result.success(arrivals)
         } catch (e: Exception) {

@@ -42,6 +42,22 @@ class MtaFeedService {
             it.body?.bytes() ?: throw MtaFeedException("Empty response from MTA")
         }
     }
+
+    /** Fetches MTA bus GTFS-RT feed (no API key required) */
+    suspend fun fetchBusFeed(): ByteArray = withContext(Dispatchers.IO) {
+        val request = Request.Builder()
+            .url("https://gtfsrt.prod.obanyc.com/tripUpdates")
+            .header("Accept", "application/x-protobuf")
+            .build()
+
+        val response = client.newCall(request).execute()
+        response.use {
+            if (!it.isSuccessful) {
+                throw MtaFeedException("Bus feed error: ${it.code}")
+            }
+            it.body?.bytes() ?: throw MtaFeedException("Empty response from bus feed")
+        }
+    }
 }
 
 class MtaFeedException(message: String) : Exception(message)

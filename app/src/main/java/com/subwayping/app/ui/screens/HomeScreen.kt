@@ -133,7 +133,11 @@ fun HomeScreen(
 
             // Arrival cards — recalculated live every second
             if (trackingState.isTracking && liveArrivals.isNotEmpty()) {
-                ArrivalCards(arrivals = liveArrivals, lineId = trackingState.lineId)
+                ArrivalCards(
+                    arrivals = liveArrivals,
+                    lineId = trackingState.lineId,
+                    isBus = activeRoute?.feedGroup == "bus"
+                )
             } else if (trackingState.isTracking) {
                 Text(
                     "Fetching arrivals...",
@@ -162,11 +166,12 @@ private fun RouteLabel(route: SavedRoute, onClick: () -> Unit) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Line circle
+            // Line badge — circle for subway, rounded square for bus
+            val isBusRoute = route.feedGroup == "bus"
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(CircleShape)
+                    .clip(if (isBusRoute) RoundedCornerShape(8.dp) else CircleShape)
                     .background(Color(route.lineColor)),
                 contentAlignment = Alignment.Center
             ) {
@@ -175,7 +180,7 @@ private fun RouteLabel(route: SavedRoute, onClick: () -> Unit) {
                     color = if (route.lineId in listOf("N", "Q", "R", "W", "L"))
                         Color.Black else Color.White,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp
+                    fontSize = if (isBusRoute) 13.sp else 22.sp
                 )
             }
 
@@ -312,7 +317,7 @@ private fun PingButton(
 }
 
 @Composable
-private fun ArrivalCards(arrivals: List<Int>, lineId: String) {
+private fun ArrivalCards(arrivals: List<Int>, lineId: String, isBus: Boolean = false) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -333,7 +338,7 @@ private fun ArrivalCards(arrivals: List<Int>, lineId: String) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        if (isNext) "Next train" else if (index == 1) "Following" else "After",
+                        if (isNext) (if (isBus) "Next bus" else "Next train") else if (index == 1) "Following" else "After",
                         color = SubwayLightGray,
                         fontSize = if (isNext) 18.sp else 14.sp
                     )

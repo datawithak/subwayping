@@ -20,7 +20,8 @@ data class SubwayLine(
     val name: String,
     val color: Long,      // ARGB color
     val textColor: Long,  // text color for contrast
-    val feedGroup: String  // which GTFS-RT feed to query
+    val feedGroup: String, // which GTFS-RT feed to query
+    val isBus: Boolean = false
 )
 
 /** Direction enum */

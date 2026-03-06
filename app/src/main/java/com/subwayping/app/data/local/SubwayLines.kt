@@ -44,6 +44,10 @@ object SubwayLines {
 
         // Staten Island Railway
         SubwayLine("SI", "SIR", 0xFF0039A6, 0xFFFFFFFF, "gtfs-si"),
+
+        // Ferry Buses
+        SubwayLine("M42", "M42", 0xFF0057B8, 0xFFFFFFFF, "bus", isBus = true),
+        SubwayLine("M34+", "M34", 0xFFD45F00, 0xFFFFFFFF, "bus", isBus = true),
     )
 
     fun getLine(id: String): SubwayLine? = all.find { it.id == id }

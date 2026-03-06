@@ -98,7 +98,27 @@ fun RoutePickerScreen(isFavouriteMode: Boolean = false, onRouteSelected: () -> U
                         onSearchChange = { searchQuery = it },
                         onStationSelected = { station ->
                             selectedStation = station
-                            step = PickerStep.DIRECTION
+                            val line = selectedLine!!
+                            if (line.isBus) {
+                                // Bus routes: no direction step, always "Toward Ferry"
+                                val route = SavedRoute(
+                                    lineId = line.id,
+                                    lineName = line.name,
+                                    lineColor = line.color,
+                                    stationId = station.stopId,
+                                    stationName = station.name,
+                                    direction = "",
+                                    directionLabel = "Toward Ferry",
+                                    feedGroup = line.feedGroup
+                                )
+                                scope.launch {
+                                    if (isFavouriteMode) app.subwayRepository.saveFavouriteRoute(route)
+                                    else app.subwayRepository.saveRoute(route)
+                                    onRouteSelected()
+                                }
+                            } else {
+                                step = PickerStep.DIRECTION
+                            }
                         }
                     )
                 }
@@ -141,27 +161,98 @@ fun RoutePickerScreen(isFavouriteMode: Boolean = false, onRouteSelected: () -> U
 
 @Composable
 private fun LinePicker(onLineSelected: (SubwayLine) -> Unit) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(4),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(SubwayLines.all.filter { it.id != "SI" }) { line ->
-            Box(
-                modifier = Modifier
-                    .aspectRatio(1f)
-                    .clip(CircleShape)
-                    .background(Color(line.color))
-                    .clickable { onLineSelected(line) },
-                contentAlignment = Alignment.Center
+    val subwayLines = SubwayLines.all.filter { !it.isBus && it.id != "SI" }
+    val busLines = SubwayLines.all.filter { it.isBus }
+
+    LazyColumn(contentPadding = PaddingValues(16.dp)) {
+        item {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(4),
+                modifier = Modifier.height(((subwayLines.size / 4 + 1) * 80).dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                userScrollEnabled = false
             ) {
-                Text(
-                    line.name,
-                    color = Color(line.textColor),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 28.sp
-                )
+                items(subwayLines) { line ->
+                    Box(
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .clip(CircleShape)
+                            .background(Color(line.color))
+                            .clickable { onLineSelected(line) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            line.name,
+                            color = Color(line.textColor),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 28.sp
+                        )
+                    }
+                }
+            }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                "FERRY BUSES",
+                color = SubwayLightGray,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 2.sp,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+        }
+
+        items(busLines) { line ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+                    .clickable { onLineSelected(line) },
+                colors = CardDefaults.cardColors(containerColor = SubwayDarkGray),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(line.color)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            line.name,
+                            color = Color(line.textColor),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            when (line.id) {
+                                "M42" -> "42nd St Crosstown"
+                                "M34+" -> "34th St SBS"
+                                else -> line.id
+                            },
+                            color = SubwayWhite,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp
+                        )
+                        Text(
+                            "→ NYC Ferry Terminal",
+                            color = SubwayLightGray,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
             }
         }
     }
