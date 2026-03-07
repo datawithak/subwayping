@@ -81,6 +81,9 @@ fun SubwayPingNavHost() {
             SettingsScreen(
                 onBack = {
                     navController.popBackStack()
+                },
+                onChangeFavourite = {
+                    navController.navigate(Routes.routePicker("favourite"))
                 }
             )
         }

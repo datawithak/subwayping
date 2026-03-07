@@ -4,9 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -163,94 +160,111 @@ fun RoutePickerScreen(isFavouriteMode: Boolean = false, onRouteSelected: () -> U
 private fun LinePicker(onLineSelected: (SubwayLine) -> Unit) {
     val subwayLines = SubwayLines.all.filter { !it.isBus && it.id != "SI" }
     val busLines = SubwayLines.all.filter { it.isBus }
+    var showBuses by remember { mutableStateOf(false) }
 
     LazyColumn(contentPadding = PaddingValues(16.dp)) {
         item {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
-                modifier = Modifier.height(((subwayLines.size / 4 + 1) * 80).dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                userScrollEnabled = false
-            ) {
-                items(subwayLines) { line ->
-                    Box(
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .clip(CircleShape)
-                            .background(Color(line.color))
-                            .clickable { onLineSelected(line) },
-                        contentAlignment = Alignment.Center
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                subwayLines.chunked(4).forEach { rowLines ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(
-                            line.name,
-                            color = Color(line.textColor),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 28.sp
-                        )
+                        rowLines.forEach { line ->
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .aspectRatio(1f)
+                                    .clip(CircleShape)
+                                    .background(Color(line.color))
+                                    .clickable { onLineSelected(line) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    line.name,
+                                    color = Color(line.textColor),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 28.sp
+                                )
+                            }
+                        }
+                        // Fill empty slots in the last row
+                        repeat(4 - rowLines.size) {
+                            Box(modifier = Modifier.weight(1f).aspectRatio(1f))
+                        }
                     }
                 }
             }
         }
 
         item {
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                "FERRY BUSES",
-                color = SubwayLightGray,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
+            Spacer(modifier = Modifier.height(20.dp))
+            OutlinedButton(
+                onClick = { showBuses = !showBuses },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                    contentColor = SubwayLightGray
+                ),
+                border = androidx.compose.foundation.BorderStroke(1.dp, SubwayMedGray)
+            ) {
+                Text(
+                    if (showBuses) "Ferry Buses ▲" else "Ferry Buses ▼",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
-        items(busLines) { line ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-                    .clickable { onLineSelected(line) },
-                colors = CardDefaults.cardColors(containerColor = SubwayDarkGray),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Row(
+        if (showBuses) {
+            items(busLines) { line ->
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(bottom = 8.dp)
+                        .clickable { onLineSelected(line) },
+                    colors = CardDefaults.cardColors(containerColor = SubwayDarkGray),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Box(
+                    Row(
                         modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color(line.color)),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            line.name,
-                            color = Color(line.textColor),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text(
-                            when (line.id) {
-                                "M42" -> "42nd St Crosstown"
-                                "M34+" -> "34th St SBS"
-                                else -> line.id
-                            },
-                            color = SubwayWhite,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 16.sp
-                        )
-                        Text(
-                            "→ NYC Ferry Terminal",
-                            color = SubwayLightGray,
-                            fontSize = 13.sp
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(line.color)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                line.name,
+                                color = Color(line.textColor),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                when (line.id) {
+                                    "M42" -> "42nd St Crosstown"
+                                    "M34+" -> "34th St SBS"
+                                    else -> line.id
+                                },
+                                color = SubwayWhite,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 16.sp
+                            )
+                            Text(
+                                "→ NYC Ferry Terminal",
+                                color = SubwayLightGray,
+                                fontSize = 13.sp
+                            )
+                        }
                     }
                 }
             }

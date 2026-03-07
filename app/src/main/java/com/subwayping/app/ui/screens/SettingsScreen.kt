@@ -3,28 +3,40 @@ package com.subwayping.app.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.subwayping.app.SubwayPingApp
+import com.subwayping.app.data.local.SavedRoute
 import com.subwayping.app.data.local.TrackingDataStore
 import com.subwayping.app.ui.theme.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(onBack: () -> Unit, onChangeFavourite: () -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val trackingDataStore = remember { TrackingDataStore(context) }
+    val app = SubwayPingApp.instance
+    var favouriteRoute by remember { mutableStateOf<SavedRoute?>(null) }
+
+    LaunchedEffect(Unit) {
+        favouriteRoute = app.subwayRepository.getFavouriteRoute()
+    }
 
     val autoStopMinutes by trackingDataStore.autoStopMinutes
         .collectAsStateWithLifecycle(initialValue = 60)
@@ -55,6 +67,74 @@ fun SettingsScreen(onBack: () -> Unit) {
                 .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
+
+            // Favourite route
+            Text(
+                "FAVOURITE ROUTE",
+                color = SubwayLightGray,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 1.sp,
+                modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+            )
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = SubwayDarkGray),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (favouriteRoute != null) {
+                        val isBus = favouriteRoute!!.feedGroup == "bus"
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(if (isBus) RoundedCornerShape(6.dp) else CircleShape)
+                                .background(Color(favouriteRoute!!.lineColor)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                favouriteRoute!!.lineId,
+                                color = if (favouriteRoute!!.lineId in listOf("N", "Q", "R", "W", "L"))
+                                    Color.Black else Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = if (isBus) 11.sp else 18.sp
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                favouriteRoute!!.stationName,
+                                color = SubwayWhite,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 15.sp
+                            )
+                            Text(
+                                favouriteRoute!!.directionLabel,
+                                color = SubwayLightGray,
+                                fontSize = 13.sp
+                            )
+                        }
+                    } else {
+                        Text(
+                            "No favourite set",
+                            color = SubwayLightGray,
+                            fontSize = 15.sp,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    IconButton(onClick = onChangeFavourite) {
+                        Icon(Icons.Default.Edit, "Change favourite", tint = SubwayLightGray)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Auto-stop timer
             Text(

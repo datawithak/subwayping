@@ -79,6 +79,15 @@ class TrackingService : Service() {
         // Show initial foreground notification
         startForeground(SubwayPingApp.NOTIFICATION_ID, createNotification("Loading arrivals..."))
 
+        // Immediately flip widget to STOP + Loading... before any network call
+        getSharedPreferences("widget_state", MODE_PRIVATE).edit()
+            .putBoolean("is_tracking", true)
+            .putLong("next_arrival_epoch", 0L)
+            .commit()
+        CoroutineScope(Dispatchers.IO).launch {
+            try { com.subwayping.app.widget.SubwayPingWidget.refreshAll(this@TrackingService) } catch (_: Exception) {}
+        }
+
         pollJob?.cancel()
         pollJob = scope.launch {
             val app = SubwayPingApp.instance
